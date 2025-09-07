@@ -25,11 +25,18 @@ import re
 import unicodedata                
 import textwrap
 
-try:
-    import importlib.resources as pkg_resources
-except ImportError:
-    import importlib_resources as pkg_resources
-from . import stws
+# MODIFIED FOR THESIS
+# Mofidied to allow embedding of graphs as image in HTML
+import BytesIO
+import base64
+
+# MODIFIED FOR THESIS
+# try:
+#     import importlib.resources as pkg_resources
+# except ImportError:
+#     import importlib_resources as pkg_resources
+# from . import stws
+import importlib
 
 # MODIFIED FOR THESIS
 # Mofidied to allow using with latest python version 3.13.5
@@ -64,6 +71,10 @@ from transformers import PegasusForConditionalGeneration
 from transformers import PegasusTokenizer
 from umap import UMAP  
 from wordcloud import WordCloud                           
+
+# MODIFIED FOR THESIS
+# Required style for matplotlib to properly display certain graphs
+plt.style.use('bmh') 
 
 ############################################################################
 
@@ -109,7 +120,9 @@ def build_edges_ref(ref_idx_list):
 
 # pbx Class
 class pbx_probe():
-    def __init__(self, file_bib, db = 'scopus', del_duplicated = True):
+    # MODIFIED FOR THESIS
+    # Replace file_bib with data, to allow passing a DataFrame
+    def __init__(self, data, db = 'scopus', del_duplicated = True):
         db                     = db.lower()
         self.database          = db
         self.institution_names =  [ 
@@ -215,7 +228,9 @@ class pbx_probe():
                                    'Canada', 'Cayman Islands', 'Central African Republic', 'Chad', 'Chile', 'China', 
                                    'Christmas Island', 'Cocos Islands', 'Colombia', 'Comoros', 'Democratic Republic of the Congo', 
                                    'Congo', 'Cook Islands', 'Costa Rica', 'Croatia', 'Cuba', 'Curacao', 'Cyprus', 'Czechia', 
-                                   "Côte d'Ivoire", 'Denmark', 'Djibouti', 'Dominica', 'Dominican Republic', 'Ecuador', 'Egypt', 
+                                   # MODIFIED FOR THESIS
+                                   # Added "Cote d'Ivoire" spelling for couuntry
+                                   "Cote d'Ivoire", "Côte d'Ivoire", 'Denmark', 'Djibouti', 'Dominica', 'Dominican Republic', 'Ecuador', 'Egypt', 
                                    'El Salvador', 'Equatorial Guinea', 'Eritrea', 'Estonia', 'Eswatini', 'Ethiopia', 
                                    'Falkland Islands', 'Faroe Islands', 'Fiji', 'Finland', 'France', 'French Guiana', 
                                    'French Polynesia', 'French Southern Territories', 'Gabon', 'Gambia', 'Georgia', 'Germany', 
@@ -242,8 +257,10 @@ class pbx_probe():
                                    'Suriname', 'Svalbard and Jan Mayen', 'Sweden', 'Switzerland', 'Syrian Arab Republic', 'Taiwan', 
                                    'Tajikistan', 'Tanzania', 'Thailand', 'Timor-Leste', 'Togo', 'Tokelau', 'Tonga', 
                                    'Trinidad and Tobago', 'Tunisia', 'Turkey', 'Turkmenistan', 'Turks and Caicos Islands', 'Tuvalu', 
-                                   'Uganda', 'Ukraine', 'United Arab Emirates', 'United Kingdom', 
-                                   'United States Minor Outlying Islands', 'United States of America', 'Uruguay', 'Uzbekistan', 
+                                   'Uganda', 'Ukraine', 'United Arab Emirates', 'United Kingdom',
+                                   # MODIFIED FOR THESIS
+                                   # Added "Unites States" spelling for couuntry
+                                   'United States Minor Outlying Islands', 'United States', 'United States of America', 'Uruguay', 'Uzbekistan', 
                                    'Vanuatu', 'Venezuela', 'Viet Nam', 'Virgin Islands (British)', 'Virgin Islands (U.S.)', 
                                    'Wallis and Futuna', 'Western Sahara', 'Yemen', 'Zambia', 'Zimbabwe', 'Aland Islands'
                                   ] 
@@ -505,7 +522,9 @@ class pbx_probe():
                                     '#d85679', '#12e193', '#82cafc', '#ac9362', '#f8481c', '#c292a1', '#c0fa8b', '#ca7b80',
                                     '#f4d054', '#fbdd7e', '#ffff7e', '#cd7584', '#f9bc08', '#c7c10c'
                                   ]
-        self.data, self.entries = self.__read_bib(file_bib, db, del_duplicated)
+        # MODIFIED FOR THESIS
+        # Replace file_bib with data, to allow passing a DataFrame
+        self.data, self.entries = self.__read_bib(data, db, del_duplicated)
         self.__make_bib()
     
     # Function: Prepare .bib File
@@ -552,7 +571,10 @@ class pbx_probe():
         idx.reverse()
         self.u_kid              = [self.u_kid[i] for i in idx]
         self.kid_count          = [self.kid_count[i] for i in idx]
-        self.auk, self.u_auk    = self.__get_str(entry = 'author_keywords', s = ';', lower = True, sorting = True)
+        # MODIFIED FOR THESIS
+        # Replace ';' with '|' as separator for author keywords
+        #self.auk, self.u_auk    = self.__get_str(entry = 'author_keywords', s = ';', lower = True, sorting = True)
+        self.auk, self.u_auk    = self.__get_str(entry = 'author_keywords', s = '|', lower = True, sorting = True)
         self.u_auk              = [auk for auk in self.u_auk if auk.lower() != 'unknown']
         self.auk_               = [item for sublist in self.auk for item in sublist]
         self.auk_count          = [self.auk_.count(item) for item in self.u_auk]
@@ -1034,10 +1056,12 @@ class pbx_probe():
         
         self.vb        = []
         db             = db.lower()
-        file_extension = os.path.splitext(bib)[1].lower()
+        # MODIFIED FOR THESIS
+        # Replace file_bib with data, to allow passing a DataFrame
+        #file_extension = os.path.splitext(bib)[1].lower()
         f_list         = []
-        if  (db == 'scopus' and file_extension == '.csv'):
-            data         = pd.read_csv(bib, encoding = 'utf8', dtype = str)
+        if  (db == 'scopus'): # and file_extension == '.csv'):
+            data         = bib # pd.read_csv(bib, encoding = 'utf8', dtype = str)
             data.columns = data.columns.str.lower()
             if ('abbrev_source_title' not in data.columns and 'abbreviated source title' in data.columns):
                 data.rename(columns = {'abbreviated source title': 'abbrev_source_title'}, inplace = True)
@@ -1400,7 +1424,9 @@ class pbx_probe():
                 data.loc[i, 'affiliation'] =  data.loc[i, 'affiliations']
         if (db == 'scopus'):
             data['correspondence_address1'] = ('Corresponding Author ' + data['correspondence_address1'] )
-            data['affiliation']             = data.apply(map_authors_to_affiliations, axis = 1)
+            # MODIFIED FOR THESIS
+            # Get 'affiliation' column from 'authors with affiliations' column prefilled by autofill aa functionalty
+            data['affiliation']             = data['authors with affiliations'] # data.apply(map_authors_to_affiliations, axis = 1)
         if (db == 'pubmed'):
             data['affiliation'] = data.apply(lambda row: assign_authors_to_affiliations(row['author'], row['affiliation']), axis = 1)
         if (db == 'wos'):
@@ -1564,7 +1590,10 @@ class pbx_probe():
                 detected_country = 'UNKNOWN'
                 for aff in affiliations:
                     for country in self.country_names:
-                        if (country.lower() in aff and author in aff):
+                        # MODIFIED FOR THESIS
+                        # parse based on convetions used by autofill aa
+                        #if (country.lower() in aff and author in aff):
+                        if (country.lower() == aff.split(',')[-1].strip() and author in aff):
                             detected_country = country
                             break
                     if (detected_country != 'UNKNOWN'):
@@ -1737,12 +1766,24 @@ class pbx_probe():
                               )
         wordcloud.generate(corpora)
         self.ask_gpt_wd = wordcloud.words_
-        plt.figure(figsize = (size_x, size_y), facecolor = 'k')
+        # MODIFIED FOR THESIS
+        # Changes necessary to display the graph embedded in HTML page
+        # plt.figure(figsize = (size_x, size_y), facecolor = 'k')
+        # plt.imshow(wordcloud)
+        # plt.axis('off')
+        # plt.tight_layout(pad = 0)
+        # plt.show()
+        # return
+        fig = plt.figure(figsize = (size_x, size_y), facecolor = 'k')
         plt.imshow(wordcloud)
         plt.axis('off')
         plt.tight_layout(pad = 0)
-        plt.show()
-        return
+        buf = BytesIO()
+        fig.savefig(buf, format="png")
+        # Embed the result in the html output.
+        data = base64.b64encode(buf.getbuffer()).decode("ascii")
+        return f"<img src='data:image/png;base64,{data}' width='800'/>"
+    
     
     # Function: Get Top N-Grams 
     def get_top_ngrams(self, view = 'browser', entry = 'kwp', ngrams = 1, stop_words = [], rmv_custom_words = [], wordsn = 15):
@@ -1813,11 +1854,15 @@ class pbx_probe():
                     name = 'Stopwords-Thai.txt'
                 elif (sw_ == 'uk' or sw_ == 'ukr' or sw_ == 'ukrainian'):
                     name = 'Stopwords-Ukrainian.txt'
-                with pkg_resources.open_binary(stws, name) as file:
+                # MODIFIED FOR THESIS
+                #with pkg_resources.open_binary(stws, name) as file:
+                with importlib.files(stws).joinpath(*name).open('rb') as file:
                     raw_data = file.read()
                 result   = chardet.detect(raw_data)
                 encoding = result['encoding']
-                with pkg_resources.open_text(stws, name, encoding = encoding) as file:
+                # MODIFIED FOR THESIS
+                #with pkg_resources.open_text(stws, name, encoding = encoding) as file:
+                with importlib.files(stws).joinpath(*name).open('r', encoding = encoding) as file:
                     content = file.read().split('\n')
                 content = [line.rstrip('\r').rstrip('\n') for line in content]
                 sw      = list(filter(None, content))
@@ -1849,8 +1894,11 @@ class pbx_probe():
                                     )
         fig.update_yaxes(autorange = 'reversed')
         fig.update_layout(paper_bgcolor = 'rgb(248, 248, 255)', plot_bgcolor = 'rgb(248, 248, 255)')
-        fig.show()
-        return 
+        # MODIFIED FOR THESIS
+        # Changes necessary to display the graph embedded in HTML page
+        #fig.show()
+        #return 
+        return fig.to_html()
     
     # Function: Tree Map
     def tree_map(self, view = 'browser', entry = 'kwp', topn = 20):
@@ -1909,8 +1957,11 @@ class pbx_probe():
                                  )
                        )
         fig.update_layout(title = title, margin = dict(l = 10, r = 10, t = 40, b = 10), paper_bgcolor = 'white')
-        fig.show()
-        return
+        # MODIFIED FOR THESIS
+        # Changes necessary to display the graph embedded in HTML page
+        #fig.show()
+        #return
+        return fig.to_html(full_html=False)
     
     # Function: Authors' Productivity Plot
     def authors_productivity(self, view = 'browser', topn = 20): 
@@ -2009,8 +2060,11 @@ class pbx_probe():
         fig_aut = go.Figure(data = [a_trace, n_trace], layout = layout)
         fig_aut.update_traces(textfont_size = 10, textfont_color = 'white') 
         fig_aut.update_yaxes(autorange = 'reversed')
-        fig_aut.show() 
-        return 
+        # MODIFIED FOR THESIS
+        # Changes necessary to display the graph embedded in HTML page        
+        #fig_aut.show() 
+        #return 
+        return fig_aut.to_html(full_html=False)
 
     # Function: Countries' Productivity Plot
     def countries_productivity(self, view = 'browser'):
@@ -2106,8 +2160,11 @@ class pbx_probe():
             ]
         )
         fig = go.Figure(data=[initial_data], layout = layout, frames = frames)
-        fig.show()
-        return
+        # MODIFIED FOR THESIS
+        # Changes necessary to display the graph embedded in HTML page     
+        #fig.show() 
+        #return 
+        return fig.to_html(full_html=False)
 
     # Function: Evolution per Year
     def plot_evolution_year(self, view = 'browser', stop_words = ['en'], key = 'kwp', rmv_custom_words = [], topn = 10, txt_font_size = 10, start = 2010, end = 2022):
@@ -2203,8 +2260,11 @@ class pbx_probe():
                                               )
                            )
         fig = go.Figure(data = traces, layout = layout)
-        fig.show()
-        return     
+        # MODIFIED FOR THESIS
+        # Changes necessary to display the graph embedded in HTML page     
+        #fig.show() 
+        #return 
+        return fig.to_html(full_html=False)     
     
     # Function: Parse Evolution Plot Data
     def parse_ep_data(self, input_text):
@@ -2260,8 +2320,11 @@ class pbx_probe():
                                                 title             = 'Frequency'
                                             )
                         )
-        fig.show()
-        return
+        # MODIFIED FOR THESIS
+        # Changes necessary to display the graph embedded in HTML page     
+        #fig.show() 
+        #return 
+        return fig.to_html(full_html=False)
 
     # Function: Plot Bar 
     def plot_bars(self, view = 'browser',  statistic = 'dpy', topn = 20):
@@ -2665,8 +2728,11 @@ class pbx_probe():
             nt = nt + str(dict_n[entry[e]]) + ' / '
         nt = nt[:-2] + ')'
         fig.update_layout(hovermode = 'closest', title = nt, font = dict(size = 12, color = 'white'), paper_bgcolor = '#474747')
-        fig.show()
-        return
+        # MODIFIED FOR THESIS
+        # Changes necessary to display the graph embedded in HTML page     
+        #fig.show() 
+        #return 
+        return fig.to_html(full_html=False)
 
     #############################################################################
     
@@ -2798,11 +2864,19 @@ class pbx_probe():
                     name = 'Stopwords-Thai.txt'
                 elif (sw_ == 'uk' or sw_ == 'ukr' or sw_ == 'ukrainian'):
                     name = 'Stopwords-Ukrainian.txt'
-                with pkg_resources.open_binary(stws, name) as file:
+                # MODIFIED FOR THESIS
+                # Necessary to locate Stopwords-English.txt resource embedded in package
+                #with pkg_resources.open_binary(stws, name) as file:
+                # with open(r"C:\Users\mdesi\UNI_RAZ_SCIENTOMETRY\pybibx-main\pybibx\base\stws\Stopwords-English.txt", 'rb') as file:
+                with importlib.files(stws).joinpath(*name).open('rb') as file:
                     raw_data = file.read()
                 result   = chardet.detect(raw_data)
                 encoding = result['encoding']
-                with pkg_resources.open_text(stws, name, encoding = encoding) as file:
+                # MODIFIED FOR THESIS
+                # Necessary to locate Stopwords-English.txt resource embedded in package
+                #with pkg_resources.open_text(stws, name, encoding = encoding) as file:
+                # with open(r"C:\Users\mdesi\UNI_RAZ_SCIENTOMETRY\pybibx-main\pybibx\base\stws\Stopwords-English.txt", 'r', encoding=encoding) as file:
+                with importlib.files(stws).joinpath(*name).open('r', encoding = encoding) as file:
                     content = file.read().split('\n')
                 content = [line.rstrip('\r').rstrip('\n') for line in content]
                 sw      = list(filter(None, content))
@@ -3277,8 +3351,15 @@ class pbx_probe():
             fig.delaxes(axes[j])
         plt.subplots_adjust(wspace = wspace, hspace = hspace)
         plt.tight_layout(pad = pad)
-        plt.show()
-        return
+        # MODIFIED FOR THESIS
+        # Changes necessary to display the graph embedded in HTML page     
+        #plt.show()
+        #return
+        buf = BytesIO()
+        fig.savefig(buf, format="png")
+        # Embed the result in the html output.
+        data = base64.b64encode(buf.getbuffer()).decode("ascii")
+        return f"<img src='data:image/png;base64,{data}' width='800'/>"
 
     # Function: Network Similarities 
     def network_sim(self, view = 'browser', sim_type = 'coup', node_size = -1, node_labels = False, cut_coup = 0.3, cut_cocit = 5):
@@ -3623,9 +3704,12 @@ class pbx_probe():
         self.fig = go.Figure(data = [n_trace, a_trace], layout = layout)
         self.fig.update_layout(yaxis = dict(scaleanchor = 'x', scaleratio = 0.5), plot_bgcolor = 'rgb(255, 255, 255)',  hoverlabel = dict(font_size = 12))
         self.fig.update_traces(textfont_size = 10, textfont_color = 'yellow') 
-        self.fig.show()
-        return
-
+        # MODIFIED FOR THESIS
+        # Changes necessary to display the graph embedded in HTML page     
+        #self.fig.show()
+        #return
+        return self.fig.to_html(full_html=False)
+    
     # Function: Network from Adjacency Matrix 
     def network_adj(self, view = 'browser', adj_type = 'aut', min_count = 2, node_size = -1, node_labels = False, label_type = 'id', centrality = None): 
         adj_ = ''
@@ -3835,11 +3919,17 @@ class pbx_probe():
             auts_list_a      = [self.H.nodes[n]['n_coa'] for n in self.H.nodes()]
             clst_list_a      = [self.H.nodes[n]['n_cls'] for n in self.H.nodes()]
             self.nids_list_a = [self.H.nodes[n]['n_id']  for n in self.H.nodes()]
+            # MODIFIED FOR THESIS
+            # Changes necessary to remove 'collaborators' label from graph
+            # self.nids_list_a = ['id:                        ' +self.node_list_a[i]+'<br>'+
+            #                     'cluster:                '    +str(clst_list_a[i])+'<br>'+
+            #                     'institution:            '    +self.nids_list_a[i].upper()+'<br>' +
+            #                     'collaborators:      '        +str(auts_list_a[i])
+            #                     for i in range(0, len(self.nids_list_a))]
             self.nids_list_a = ['id:                        ' +self.node_list_a[i]+'<br>'+
                                 'cluster:                '    +str(clst_list_a[i])+'<br>'+
-                                'institution:            '    +self.nids_list_a[i].upper()+'<br>' +
-                                'collaborators:      '        +str(auts_list_a[i])
-                                for i in range(0, len(self.nids_list_a))]
+                                'institution:            '    +self.nids_list_a[i].upper()
+                                for i in range(0, len(self.nids_list_a))]            
         elif (adj_type == 'kwa'):  
             auts_list_a      = [self.H.nodes[n]['n_coa'] for n in self.H.nodes()]
             clst_list_a      = [self.H.nodes[n]['n_cls'] for n in self.H.nodes()]
@@ -3906,7 +3996,10 @@ class pbx_probe():
         self.fig_a = go.Figure(data = [n_trace, a_trace], layout = layout)
         self.fig_a.update_layout(yaxis = dict(scaleanchor = 'x', scaleratio = 0.5), plot_bgcolor = 'rgb(255, 255, 255)',  hoverlabel = dict(font_size = 12))
         self.fig_a.update_traces(textfont_size = 10, textfont_color = 'blue', textposition = 'top center') 
-        self.fig_a.show()
+        # MODIFIED FOR THESIS
+        # Changes necessary to embed figure in HTML
+        #self.fig_a.show()
+        sh = self.fig_a.to_html(full_html=False)
         if (label_type != 'id'):
             if (adj_type == 'aut'):
                 self.node_list_a = [ self.dict_aut_id[item] for item in self.node_list_a]
@@ -3918,7 +4011,7 @@ class pbx_probe():
                 self.node_list_a = [ self.dict_kwa_id[item] for item in self.node_list_a]
             elif (adj_type == 'kwp'): 
                 self.node_list_a = [ self.dict_kwp_id[item] for item in self.node_list_a]
-        return
+        return sh
 
     # Function: Find Connected Nodes from Direct Network
     def find_nodes_dir(self, view = 'browser', article_ids = [], ref_ids = [], node_size = -1):
