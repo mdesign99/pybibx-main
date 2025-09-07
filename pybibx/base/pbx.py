@@ -27,7 +27,7 @@ import textwrap
 
 # MODIFIED FOR THESIS
 # Mofidied to allow embedding of graphs as image in HTML
-import BytesIO
+from io import BytesIO
 import base64
 
 # MODIFIED FOR THESIS
