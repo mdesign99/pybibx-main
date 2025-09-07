@@ -14,10 +14,14 @@ setup(
     packages=find_packages(),
     include_package_data=True,
     install_requires=[
+        # MODIFIED FOR THESIS
+        # Mofidied to allow using with latest python version 3.13.5 
         #'bertopic',
         #'bert-extractive-summarizer',
         'chardet',
         'google-generativeai',
+        # MODIFIED FOR THESIS
+        # Mofidied to allow using with latest python version 3.13.5
         #'gensim',
         'llmx',
         'matplotlib',
@@ -28,6 +32,8 @@ setup(
         'plotly',
         'scipy',
         'scikit-learn',
+        # MODIFIED FOR THESIS
+        # Mofidied to allow using with latest python version 3.13.5
         #'sentencepiece',
         'sentence-transformers',
         'torch', 

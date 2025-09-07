@@ -31,24 +31,34 @@ except ImportError:
     import importlib_resources as pkg_resources
 from . import stws
 
+# MODIFIED FOR THESIS
+# Mofidied to allow using with latest python version 3.13.5
 #from bertopic import BERTopic                               
 from collections import Counter, defaultdict
 from difflib import SequenceMatcher
+# MODIFIED FOR THESIS
+# Mofidied to allow using with latest python version 3.13.5
 #from gensim.models import FastText
 from itertools import combinations
 from matplotlib import pyplot as plt                       
 plt.style.use('bmh') 
 from numba import njit
 from numba.typed import List
+# MODIFIED FOR THESIS
+# Mofidied to allow using with latest python version 3.13.5
 #from rapidfuzz import fuzz
 from scipy.sparse import coo_matrix
 from scipy.sparse import csr_matrix
+# MODIFIED FOR THESIS
+# Mofidied to allow using with latest python version 3.13.5
 #from sentence_transformers import SentenceTransformer                    
 from sklearn.cluster import KMeans                          
 from sklearn.decomposition import TruncatedSVD as tsvd      
 from sklearn.feature_extraction.text import CountVectorizer 
 from sklearn.feature_extraction.text import TfidfVectorizer 
-from sklearn.metrics.pairwise import cosine_similarity  
+from sklearn.metrics.pairwise import cosine_similarity
+# MODIFIED FOR THESIS
+# Mofidied to allow using with latest python version 3.13.5
 #from summarizer import Summarizer
 from transformers import PegasusForConditionalGeneration
 from transformers import PegasusTokenizer
